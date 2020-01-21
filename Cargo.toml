@@ -1,0 +1,12 @@
+[package]
+name = "bird_tool_utils"
+version = "0.1.0"
+authors = ["Ben J Woodcroft <donttrustben@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = "2.*"
+log = "0.4.*"
+env_logger = "0.7.*"
