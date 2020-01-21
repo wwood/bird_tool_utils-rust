@@ -81,3 +81,33 @@ pub fn parse_list_of_genome_fasta_files(m: &clap::ArgMatches, fail_on_no_genomes
         }
     }
 }
+
+/// Add --genome-fasta-files and --genome-fasta-directory etc. to a clap App /
+/// subcommand. These arguments can later be parsed with
+/// parse_list_of_genome_fasta_files().
+pub fn add_genome_specification_arguments<'a>(subcommand: clap::App<'a,'a>)
+-> clap::App<'a,'a> {
+    subcommand
+        .arg(Arg::with_name("genome-fasta-files")
+            .short("f")
+            .long("genome-fasta-files")
+            .help("List of fasta files for processing")
+            .multiple(true)
+            .conflicts_with("genome-fasta-directory")
+            .takes_value(true))
+        .arg(Arg::with_name("genome-fasta-directory")
+            .long("genome-fasta-directory")
+            .help("Directory containing fasta files for processing")
+            .conflicts_with("genome-fasta-files")
+            .takes_value(true))
+        .arg(Arg::with_name("genome-fasta-extension")
+            .short("x")
+            .help("File extension of FASTA files in --genome-fasta-directory")
+            .long("genome-fasta-extension")
+            // Unsure why, but uncommenting causes test failure (in
+            // coverm genome mode where this code was pasted from,
+            // not sure about here) - clap bug?
+            //.requires("genome-fasta-directory")
+            .default_value("fna")
+            .takes_value(true))
+}
