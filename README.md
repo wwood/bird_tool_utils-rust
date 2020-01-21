@@ -1,0 +1,1 @@
+A collection of Rust utility functions, implemented as a library.
