@@ -1,6 +1,5 @@
 pub mod clap_utils;
+pub mod command;
 
-extern crate clap;
 #[macro_use]
 extern crate log;
-extern crate env_logger;
