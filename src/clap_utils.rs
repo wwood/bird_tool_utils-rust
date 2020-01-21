@@ -1,5 +1,7 @@
 use std;
 use std::env;
+use std::fs::File;
+use std::io::{BufRead,BufReader};
 
 use clap::*;
 use log::LevelFilter;
@@ -75,8 +77,21 @@ pub fn parse_list_of_genome_fasta_files(m: &clap::ArgMatches, fail_on_no_genomes
                     }
                 }
                 return Ok(genome_fasta_files)
+            } else if m.is_present("genome-fasta-list") {
+                let file_path = m.value_of("genome-fasta-list").unwrap();
+                let file = File::open(file_path)
+                    .expect(&format!("Failed to open genome fasta list file {}", file_path));
+                let reader = BufReader::new(file);
+                let mut fasta_paths = vec![];
+                for (index, line) in reader.lines().enumerate() {
+                    let line = line
+                        .expect(&format!("Error when reading genome fasta list file {} on line {}", file_path, index+1));
+                    // Show the line and its number.
+                    fasta_paths.push(line.trim().to_string());
+                }
+                return Ok(fasta_paths);
             } else {
-                return std::result::Result::Err("No genomes options specified".to_string());
+                return std::result::Result::Err("No genome specification options specified".to_string());
             }
         }
     }
@@ -93,12 +108,17 @@ pub fn add_genome_specification_arguments<'a>(subcommand: clap::App<'a,'a>)
             .long("genome-fasta-files")
             .help("List of fasta files for processing")
             .multiple(true)
+            .conflicts_with_all(
+                &["genome-fasta-directory","genome-fasta-list"])
+            .takes_value(true))
+        .arg(Arg::with_name("genome-fasta-list")
+            .long("genome-fasta-list")
+            .help("List of fasta file paths, one per line, for processing")
             .conflicts_with("genome-fasta-directory")
             .takes_value(true))
         .arg(Arg::with_name("genome-fasta-directory")
             .long("genome-fasta-directory")
             .help("Directory containing fasta files for processing")
-            .conflicts_with("genome-fasta-files")
             .takes_value(true))
         .arg(Arg::with_name("genome-fasta-extension")
             .short("x")
