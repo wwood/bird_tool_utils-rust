@@ -7,7 +7,7 @@ use clap::*;
 use log::LevelFilter;
 use env_logger::Builder;
 
-pub fn set_log_level(matches: &clap::ArgMatches, is_last: bool, program_name: &str) {
+pub fn set_log_level(matches: &clap::ArgMatches, is_last: bool, program_name: &str, version: &str) {
     let mut log_level = LevelFilter::Info;
     let mut specified = false;
     if matches.is_present("verbose") {
@@ -29,7 +29,7 @@ pub fn set_log_level(matches: &clap::ArgMatches, is_last: bool, program_name: &s
         }
     }
     if is_last {
-        info!("{} version {}", program_name, crate_version!());
+        info!("{} version {}", program_name, version);
     }
 }
 
