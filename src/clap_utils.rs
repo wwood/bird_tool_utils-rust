@@ -1,11 +1,11 @@
 use std;
 use std::env;
 use std::fs::File;
-use std::io::{BufRead,BufReader};
+use std::io::{BufRead, BufReader};
 
 use clap::*;
-use log::LevelFilter;
 use env_logger::Builder;
+use log::LevelFilter;
 
 pub fn set_log_level(matches: &clap::ArgMatches, is_last: bool, program_name: &str, version: &str) {
     let mut log_level = LevelFilter::Info;
@@ -35,18 +35,24 @@ pub fn set_log_level(matches: &clap::ArgMatches, is_last: bool, program_name: &s
 
 /// Parse clap arguments defined in the common way, returning a list of paths as
 /// strings. If fail_on_no_genomes, return an Err if no genomes were detected.
-pub fn parse_list_of_genome_fasta_files(m: &clap::ArgMatches, fail_on_no_genomes: bool)
-    -> std::result::Result<Vec<String>, String> {
-
+pub fn parse_list_of_genome_fasta_files(
+    m: &clap::ArgMatches,
+    fail_on_no_genomes: bool,
+) -> std::result::Result<Vec<String>, String> {
     match m.is_present("genome-fasta-files") {
         true => {
-            return Ok(m.values_of("genome-fasta-files").unwrap().map(|s| s.to_string()).collect())
-        },
+            return Ok(m
+                .values_of("genome-fasta-files")
+                .unwrap()
+                .map(|s| s.to_string())
+                .collect())
+        }
         false => {
             if m.is_present("genome-fasta-directory") {
                 let dir = m.value_of("genome-fasta-directory").unwrap();
-                let paths = std::fs::read_dir(dir).unwrap();
-                let mut genome_fasta_files: Vec<String> = vec!();
+                let paths = std::fs::read_dir(dir)
+                    .expect(&format!("Failed to read genome-fasta-directory '{}'", dir));
+                let mut genome_fasta_files: Vec<String> = vec![];
                 let extension = m.value_of("genome-fasta-extension").unwrap();
                 for path in paths {
                     let file = path.unwrap().path();
@@ -60,38 +66,50 @@ pub fn parse_list_of_genome_fasta_files(m: &clap::ArgMatches, fail_on_no_genomes
                                     "Not using directory entry '{}' as a genome FASTA file, as \
                                      it does not end with the extension '{}'",
                                     file.to_str().expect("UTF8 error in filename"),
-                                    extension);
+                                    extension
+                                );
                             }
-                        },
+                        }
                         None => {
-                            info!("Not using directory entry '{}' as a genome FASTA file",
-                                  file.to_str().expect("UTF8 error in filename"));
+                            info!(
+                                "Not using directory entry '{}' as a genome FASTA file",
+                                file.to_str().expect("UTF8 error in filename")
+                            );
                         }
                     }
                 }
                 if genome_fasta_files.len() == 0 {
                     return match fail_on_no_genomes {
                         true => std::result::Result::Err(
-                            "Found 0 genomes from the genome-fasta-directory, cannot continue.".to_string()),
-                        false => Ok(vec![])
-                    }
+                            "Found 0 genomes from the genome-fasta-directory, cannot continue."
+                                .to_string(),
+                        ),
+                        false => Ok(vec![]),
+                    };
                 }
-                return Ok(genome_fasta_files)
+                return Ok(genome_fasta_files);
             } else if m.is_present("genome-fasta-list") {
                 let file_path = m.value_of("genome-fasta-list").unwrap();
-                let file = File::open(file_path)
-                    .expect(&format!("Failed to open genome fasta list file {}", file_path));
+                let file = File::open(file_path).expect(&format!(
+                    "Failed to open genome fasta list file {}",
+                    file_path
+                ));
                 let reader = BufReader::new(file);
                 let mut fasta_paths = vec![];
                 for (index, line) in reader.lines().enumerate() {
-                    let line = line
-                        .expect(&format!("Error when reading genome fasta list file {} on line {}", file_path, index+1));
+                    let line = line.expect(&format!(
+                        "Error when reading genome fasta list file {} on line {}",
+                        file_path,
+                        index + 1
+                    ));
                     // Show the line and its number.
                     fasta_paths.push(line.trim().to_string());
                 }
                 return Ok(fasta_paths);
             } else {
-                return std::result::Result::Err("No genome specification options specified".to_string());
+                return std::result::Result::Err(
+                    "No genome specification options specified".to_string(),
+                );
             }
         }
     }
@@ -100,34 +118,40 @@ pub fn parse_list_of_genome_fasta_files(m: &clap::ArgMatches, fail_on_no_genomes
 /// Add --genome-fasta-files and --genome-fasta-directory etc. to a clap App /
 /// subcommand. These arguments can later be parsed with
 /// parse_list_of_genome_fasta_files().
-pub fn add_genome_specification_arguments<'a>(subcommand: clap::App<'a,'a>)
--> clap::App<'a,'a> {
+pub fn add_genome_specification_arguments<'a>(subcommand: clap::App<'a, 'a>) -> clap::App<'a, 'a> {
     subcommand
-        .arg(Arg::with_name("genome-fasta-files")
-            .short("f")
-            .long("genome-fasta-files")
-            .help("List of fasta files for processing")
-            .multiple(true)
-            .conflicts_with_all(
-                &["genome-fasta-directory","genome-fasta-list"])
-            .takes_value(true))
-        .arg(Arg::with_name("genome-fasta-list")
-            .long("genome-fasta-list")
-            .help("List of fasta file paths, one per line, for processing")
-            .conflicts_with("genome-fasta-directory")
-            .takes_value(true))
-        .arg(Arg::with_name("genome-fasta-directory")
-            .long("genome-fasta-directory")
-            .help("Directory containing fasta files for processing")
-            .takes_value(true))
-        .arg(Arg::with_name("genome-fasta-extension")
-            .short("x")
-            .help("File extension of FASTA files in --genome-fasta-directory")
-            .long("genome-fasta-extension")
-            // Unsure why, but uncommenting causes test failure (in
-            // coverm genome mode where this code was pasted from,
-            // not sure about here) - clap bug?
-            //.requires("genome-fasta-directory")
-            .default_value("fna")
-            .takes_value(true))
+        .arg(
+            Arg::with_name("genome-fasta-files")
+                .short("f")
+                .long("genome-fasta-files")
+                .help("List of fasta files for processing")
+                .multiple(true)
+                .conflicts_with_all(&["genome-fasta-directory", "genome-fasta-list"])
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("genome-fasta-list")
+                .long("genome-fasta-list")
+                .help("List of fasta file paths, one per line, for processing")
+                .conflicts_with("genome-fasta-directory")
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("genome-fasta-directory")
+                .long("genome-fasta-directory")
+                .help("Directory containing fasta files for processing")
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("genome-fasta-extension")
+                .short("x")
+                .help("File extension of FASTA files in --genome-fasta-directory")
+                .long("genome-fasta-extension")
+                // Unsure why, but uncommenting causes test failure (in
+                // coverm genome mode where this code was pasted from,
+                // not sure about here) - clap bug?
+                //.requires("genome-fasta-directory")
+                .default_value("fna")
+                .takes_value(true),
+        )
 }
