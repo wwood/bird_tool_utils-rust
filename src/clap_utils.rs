@@ -2,10 +2,13 @@ use std;
 use std::env;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use std::io::Write;
 
 use clap::*;
 use env_logger::Builder;
 use log::LevelFilter;
+use tempfile;
+use man;
 
 pub fn set_log_level(matches: &clap::ArgMatches, is_last: bool, program_name: &str, version: &str) {
     let mut log_level = LevelFilter::Info;
@@ -154,4 +157,17 @@ pub fn add_genome_specification_arguments<'a>(subcommand: clap::App<'a, 'a>) -> 
                 .default_value("fna")
                 .takes_value(true),
         )
+}
+
+pub fn display_full_help(manual: man::Manual) {
+    let mut f =
+        tempfile::NamedTempFile::new().expect("Failed to create temporary file for --full-help");
+    write!(f, "{}", manual.render()).expect("Failed to write to tempfile for full-help");
+    let child = std::process::Command::new("man")
+        .args(&[f.path()])
+        .spawn()
+        .expect("Failed to spawn 'man' command for --full-help");
+
+    crate::command::finish_command_safely(child, &"man");
+    std::process::exit(1);
 }
