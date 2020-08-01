@@ -3,12 +3,14 @@ use std::env;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::io::Write;
+use std::process;
 
 use clap::*;
 use env_logger::Builder;
 use log::LevelFilter;
 use tempfile;
 use man;
+use man::prelude::{Opt, Section};
 
 pub fn set_log_level(matches: &clap::ArgMatches, is_last: bool, program_name: &str, version: &str) {
     let mut log_level = LevelFilter::Info;
@@ -33,6 +35,15 @@ pub fn set_log_level(matches: &clap::ArgMatches, is_last: bool, program_name: &s
     }
     if is_last {
         info!("{} version {}", program_name, version);
+    }
+}
+
+pub fn print_full_help_if_needed(m: &clap::ArgMatches, manual: man::Manual) {
+    if m.is_present("full-help") {
+        display_full_help(manual)
+    } else if m.is_present("full-help-roff") {
+        println!("{}", manual.render());
+        process::exit(1);
     }
 }
 
@@ -157,6 +168,35 @@ pub fn add_genome_specification_arguments<'a>(subcommand: clap::App<'a, 'a>) -> 
                 .default_value("fna")
                 .takes_value(true),
         )
+}
+
+pub fn add_genome_specification_to_section(section: Section) -> Section {
+    section
+    .option(
+        Opt::new("PATH ..")
+            .short("-f")
+            .long("--genome-fasta-files")
+            .help("Path(s) to FASTA files of each genome e.g. 'pathA/genome1.fna pathB/genome2.fa'")
+    )
+    .option(
+        Opt::new("PATH")
+            .short("-d")
+            .long("--genome-fasta-directory")
+            .help("Directory containing FASTA files of each genome")
+    )
+    .option(
+        Opt::new("EXT")
+            .short("-x")
+            .long("--genome-fasta-extension")
+            .help("File extension of genomes in the directory \
+                specified with -d/--genome-fasta-directory [default \"fna\"]")
+    )
+    .option(
+        Opt::new("PATH")
+            .short("-d")
+            .long("--genome-fasta-list")
+            .help("File containing FASTA file paths, one per line")
+    )
 }
 
 pub fn display_full_help(manual: man::Manual) {
