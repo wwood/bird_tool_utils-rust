@@ -193,7 +193,6 @@ pub fn add_genome_specification_to_section(section: Section) -> Section {
     )
     .option(
         Opt::new("PATH")
-            .short("-d")
             .long("--genome-fasta-list")
             .help("File containing FASTA file paths, one per line")
     )
