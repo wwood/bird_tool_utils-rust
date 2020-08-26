@@ -1,16 +1,16 @@
 use std;
 use std::env;
 use std::fs::File;
-use std::io::{BufRead, BufReader};
 use std::io::Write;
+use std::io::{BufRead, BufReader};
 use std::process;
 
 use clap::*;
 use env_logger::Builder;
 use log::LevelFilter;
+use bird_tool_utils_man as man;
+use bird_tool_utils_man::prelude::{Opt, Section};
 use tempfile;
-use man;
-use man::prelude::{Opt, Section};
 
 pub fn set_log_level(matches: &clap::ArgMatches, is_last: bool, program_name: &str, version: &str) {
     let mut log_level = LevelFilter::Info;
@@ -172,30 +172,37 @@ pub fn add_genome_specification_arguments<'a>(subcommand: clap::App<'a, 'a>) -> 
 
 pub fn add_genome_specification_to_section(section: Section) -> Section {
     section
-    .option(
-        Opt::new("PATH ..")
-            .short("-f")
-            .long("--genome-fasta-files")
-            .help("Path(s) to FASTA files of each genome e.g. 'pathA/genome1.fna pathB/genome2.fa'")
-    )
-    .option(
-        Opt::new("PATH")
-            .short("-d")
-            .long("--genome-fasta-directory")
-            .help("Directory containing FASTA files of each genome")
-    )
-    .option(
-        Opt::new("EXT")
-            .short("-x")
-            .long("--genome-fasta-extension")
-            .help("File extension of genomes in the directory \
-                specified with -d/--genome-fasta-directory [default \"fna\"]")
-    )
-    .option(
-        Opt::new("PATH")
-            .long("--genome-fasta-list")
-            .help("File containing FASTA file paths, one per line")
-    )
+        .option(
+            Opt::new("PATH ..")
+                .short("-f")
+                .long("--genome-fasta-files")
+                .help(&format!(
+                    "Path(s) to FASTA files of each genome e.g. {}.",
+                    monospace_roff("pathA/genome1.fna pathB/genome2.fa")
+                )),
+        )
+        .option(
+            Opt::new("PATH")
+                .short("-d")
+                .long("--genome-fasta-directory")
+                .help("Directory containing FASTA files of each genome."),
+        )
+        .option(
+            Opt::new("EXT")
+                .short("-x")
+                .long("--genome-fasta-extension")
+                .help(&format!(
+                    "File extension of genomes in the directory \
+                specified with {}. {}",
+                    monospace_roff("-d/--genome-fasta-directory"),
+                    default_roff("fna")
+                )),
+        )
+        .option(
+            Opt::new("PATH")
+                .long("--genome-fasta-list")
+                .help("File containing FASTA file paths, one per line."),
+        )
 }
 
 pub fn display_full_help(manual: man::Manual) {
@@ -209,4 +216,59 @@ pub fn display_full_help(manual: man::Manual) {
 
     crate::command::finish_command_safely(child, &"man");
     std::process::exit(1);
+}
+
+pub fn default_roff(s: &str) -> String {
+    format!("[default: \\f[C]{}\\f[R]]", s)
+}
+
+pub fn monospace_roff(s: &str) -> String {
+    format!("\\f[C]{}\\f[R]", s)
+}
+
+pub fn list_roff(strings: &[&str]) -> String {
+    let mut s: String = "\n".to_string(); //start with a new line so the first .IP starts at the first char of the row
+    for e in strings {
+        s.push_str(".IP \\[bu] 2\n");
+        s.push_str(e.clone());
+        s.push_str("\n");
+    }
+    s.push_str(".PP\n");
+    s
+}
+
+pub fn table_roff(strings: &[&[&str]]) -> String {
+    //start with a new line so the first .IP starts at the first char of the row
+    let mut s: String = "\n.TS\n\
+        tab(@);\n"
+        .to_string();
+    for row in strings {
+        for _ in *row {
+            s.push_str("l ");
+        }
+        break;
+    }
+    s.push_str(".\n");
+
+    let mut first_row = true;
+    for e in strings {
+        let mut first_column = true;
+        for cell in *e {
+            if first_column {
+                first_column = false;
+            } else {
+                s.push_str("@");
+            }
+            s.push_str("T{\n");
+            s.push_str(cell.clone());
+            s.push_str("\nT}");
+        }
+        s.push_str("\n");
+        if first_row {
+            first_row = false;
+            s.push_str("_\n");
+        }
+    }
+    s.push_str(".TE\n");
+    s
 }
