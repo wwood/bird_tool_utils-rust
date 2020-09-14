@@ -17,5 +17,5 @@ clap = "2.*"
 log = "0.4.*"
 env_logger = "0.7.*"
 version-compare = "0.0.10"
-man = {git = "https://github.com/wwood/man", rev = "d7e380954899d208b8fa70dd4b3e87abfde8cc91"}
+bird_tool_utils-man = "0.4.0"
 tempfile = "3.*"

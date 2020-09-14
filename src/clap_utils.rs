@@ -8,8 +8,8 @@ use std::process;
 use clap::*;
 use env_logger::Builder;
 use log::LevelFilter;
-use man;
-use man::prelude::{Opt, Section};
+use bird_tool_utils_man;
+use bird_tool_utils_man::prelude::{Opt, Section, Manual};
 use tempfile;
 
 pub fn set_log_level(matches: &clap::ArgMatches, is_last: bool, program_name: &str, version: &str) {
@@ -38,12 +38,12 @@ pub fn set_log_level(matches: &clap::ArgMatches, is_last: bool, program_name: &s
     }
 }
 
-pub fn print_full_help_if_needed(m: &clap::ArgMatches, manual: man::Manual) {
+pub fn print_full_help_if_needed(m: &clap::ArgMatches, manual: Manual) {
     if m.is_present("full-help") {
         display_full_help(manual)
     } else if m.is_present("full-help-roff") {
         println!("{}", manual.render());
-        process::exit(1);
+        process::exit(0);
     }
 }
 
@@ -205,7 +205,7 @@ pub fn add_genome_specification_to_section(section: Section) -> Section {
         )
 }
 
-pub fn display_full_help(manual: man::Manual) {
+pub fn display_full_help(manual: Manual) {
     let mut f =
         tempfile::NamedTempFile::new().expect("Failed to create temporary file for --full-help");
     write!(f, "{}", manual.render()).expect("Failed to write to tempfile for full-help");
@@ -215,7 +215,7 @@ pub fn display_full_help(manual: man::Manual) {
         .expect("Failed to spawn 'man' command for --full-help");
 
     crate::command::finish_command_safely(child, &"man");
-    std::process::exit(1);
+    std::process::exit(0);
 }
 
 pub fn default_roff(s: &str) -> String {

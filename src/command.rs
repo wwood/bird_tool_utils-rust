@@ -10,7 +10,7 @@ pub fn finish_command_safely(
     ));
     debug!("Process {} finished", process_name);
     if !es.success() {
-        error!("Error when running {} process.", process_name);
+        error!("Error when running {} process. Exitstatus was : {:?}", process_name, es);
         let mut err = String::new();
         process
             .stderr
