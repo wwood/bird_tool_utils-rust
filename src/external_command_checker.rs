@@ -1,10 +1,9 @@
 use std;
 use std::io::Read;
-use std::process;
 use version_compare::Version;
 
 /// Check whether a command is available at all
-pub fn check_for_external_command_presence(executable_name: &str, testing_cmd: &str) {
+pub fn check_for_external_command_presence(executable_name: &str, testing_cmd: &str) -> Result<(),String> {
     debug!("Checking for {} ..", executable_name);
     let mut cmd = std::process::Command::new("bash");
     cmd.arg("-c")
@@ -16,7 +15,9 @@ pub fn check_for_external_command_presence(executable_name: &str, testing_cmd: &
         "Failed to glean exitstatus while checking for presence of {}",
         executable_name
     ));
-    if !es.success() {
+    if es.success() {
+        return Ok(())
+    } else {
         error!(
             "Could not find an available {} executable.",
             executable_name
@@ -28,11 +29,11 @@ pub fn check_for_external_command_presence(executable_name: &str, testing_cmd: &
             .read_to_string(&mut err)
             .expect("Failed to read stderr into string");
         error!("The STDERR was: {:?}", err);
-        error!(
+        let error_string = format!(
             "Cannot continue without {}. Testing for presence with `{}` failed",
-            executable_name, testing_cmd
-        );
-        process::exit(1);
+            executable_name, testing_cmd);
+        error!("{}", error_string);
+        return Err(error_string);
     }
 }
 
@@ -44,7 +45,7 @@ pub fn default_version_check(
     min_version: &str,
     allow_nonzero_exitstatus: bool,
     command: Option<&str>,
-) {
+) -> Result<(),String> {
     let version_command = match command {
         Some(cmd) => cmd.to_string(),
         None => format!("{} --version 2>&1", executable_name),
@@ -71,11 +72,11 @@ pub fn default_version_check(
             .read_to_string(&mut err)
             .expect("Failed to read stderr into string");
         error!("The STDERR was: {:?}", err);
-        error!(
+        let error_string = format!(
             "Cannot continue without {}. Finding version of `{}` failed",
-            executable_name, &version_command
-        );
-        process::exit(1);
+            executable_name, &version_command);
+        error!("{}", error_string);
+        return Err(error_string);
     }
     let mut version = String::new();
     process
@@ -114,11 +115,14 @@ pub fn default_version_check(
 
     info!("Found {} version {} ", executable_name, found_version);
     if found_version < expected_version {
-        error!(
-            "It appears the available version of {} is too old \
-            (found version {}, required is {})",
-            executable_name, found_version, expected_version
+        return Err(
+            format!(
+                "It appears the available version of {} is too old \
+                (found version {}, required is {})",
+                executable_name, found_version, expected_version
+            )
         );
-        process::exit(11);
+    } else {
+        return Ok(());
     }
 }
