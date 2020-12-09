@@ -68,19 +68,26 @@ pub fn parse_list_of_genome_fasta_files(
                     .expect(&format!("Failed to read genome-fasta-directory '{}'", dir));
                 let mut genome_fasta_files: Vec<String> = vec![];
                 let extension = m.value_of("genome-fasta-extension").unwrap();
+                // Remove leading dot if present
+                let extension2 = match extension.starts_with(".") {
+                    true => {
+                        extension.split_at(1).1
+                    },
+                    false => extension,
+                };
                 for path in paths {
                     let file = path.unwrap().path();
                     match file.extension() {
                         Some(ext) => {
-                            if ext == extension {
+                            if ext == extension2 {
                                 let s = String::from(file.to_string_lossy());
                                 genome_fasta_files.push(s);
                             } else {
                                 info!(
                                     "Not using directory entry '{}' as a genome FASTA file, as \
-                                     it does not end with the extension '{}'",
+                                     it does not end with the extension '.{}'",
                                     file.to_str().expect("UTF8 error in filename"),
-                                    extension
+                                    extension2
                                 );
                             }
                         }
