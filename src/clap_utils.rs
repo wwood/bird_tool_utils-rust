@@ -139,33 +139,33 @@ pub fn parse_list_of_genome_fasta_files(
 /// Add --genome-fasta-files and --genome-fasta-directory etc. to a clap App /
 /// subcommand. These arguments can later be parsed with
 /// parse_list_of_genome_fasta_files().
-pub fn add_genome_specification_arguments<'a>(subcommand: clap::App<'a, 'a>) -> clap::App<'a, 'a> {
+pub fn add_genome_specification_arguments<'a>(subcommand: clap::Command<'a>) -> clap::Command<'a> {
     subcommand
         .arg(
-            Arg::with_name("genome-fasta-files")
-                .short("f")
+            Arg::new("genome-fasta-files")
+                .short('f')
                 .long("genome-fasta-files")
                 .help("List of fasta files for processing")
-                .multiple(true)
+                .multiple_values(true)
                 .conflicts_with_all(&["genome-fasta-directory", "genome-fasta-list"])
                 .takes_value(true),
         )
         .arg(
-            Arg::with_name("genome-fasta-list")
+            Arg::new("genome-fasta-list")
                 .long("genome-fasta-list")
                 .help("List of fasta file paths, one per line, for processing")
                 .conflicts_with("genome-fasta-directory")
                 .takes_value(true),
         )
         .arg(
-            Arg::with_name("genome-fasta-directory")
+            Arg::new("genome-fasta-directory")
                 .long("genome-fasta-directory")
                 .help("Directory containing fasta files for processing")
                 .takes_value(true),
         )
         .arg(
-            Arg::with_name("genome-fasta-extension")
-                .short("x")
+            Arg::new("genome-fasta-extension")
+                .short('x')
                 .help("File extension of FASTA files in --genome-fasta-directory")
                 .long("genome-fasta-extension")
                 // Unsure why, but uncommenting causes test failure (in
@@ -190,7 +190,6 @@ pub fn add_genome_specification_to_section(section: Section) -> Section {
         )
         .option(
             Opt::new("PATH")
-                .short("-d")
                 .long("--genome-fasta-directory")
                 .help("Directory containing FASTA files of each genome."),
         )
@@ -210,6 +209,14 @@ pub fn add_genome_specification_to_section(section: Section) -> Section {
                 .long("--genome-fasta-list")
                 .help("File containing FASTA file paths, one per line."),
         )
+}
+
+pub fn add_clap_verbosity_flags(cmd: clap::Command<'_>) -> clap::Command<'_> {
+    cmd
+    .args(&[
+        arg!(-v --verbose "Print extra debug logging information"),
+        arg!(-q --quiet "Unless there is an error, do not print logging information"),
+    ])
 }
 
 pub fn display_full_help(manual: Manual) {

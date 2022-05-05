@@ -13,9 +13,9 @@ readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = "2.*"
+clap = "3.*"
 log = "0.4.*"
-env_logger = "0.7.*"
-version-compare = "0.0.10"
+env_logger = "0.9.*"
+version-compare = "0.1.*"
 bird_tool_utils-man = "0.4.0"
 tempfile = "3.*"
