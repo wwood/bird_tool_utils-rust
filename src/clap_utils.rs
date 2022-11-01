@@ -190,6 +190,7 @@ pub fn add_genome_specification_to_section(section: Section) -> Section {
         )
         .option(
             Opt::new("PATH")
+                .short("d")
                 .long("--genome-fasta-directory")
                 .help("Directory containing FASTA files of each genome."),
         )

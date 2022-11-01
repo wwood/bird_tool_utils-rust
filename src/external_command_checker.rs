@@ -89,6 +89,10 @@ pub fn default_version_check(
         "Running {}, found version STDOUT: {:?}",
         executable_name, version
     );
+    if version.starts_with("v") {
+        debug!("Removed leading v from version string");
+        version = version[1..].to_string();
+    }
 
     let expected_version = Version::from(min_version)
         .expect("Programming error: failed to parse code-specified version");
