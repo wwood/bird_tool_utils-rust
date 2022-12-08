@@ -15,11 +15,11 @@ use tempfile;
 pub fn set_log_level(matches: &clap::ArgMatches, is_last: bool, program_name: &str, version: &str) {
     let mut log_level = LevelFilter::Info;
     let mut specified = false;
-    if matches.is_present("verbose") {
+    if matches.contains_id("verbose") {
         specified = true;
         log_level = LevelFilter::Debug;
     }
-    if matches.is_present("quiet") {
+    if matches.contains_id("quiet") {
         specified = true;
         log_level = LevelFilter::Error;
     }
@@ -39,9 +39,9 @@ pub fn set_log_level(matches: &clap::ArgMatches, is_last: bool, program_name: &s
 }
 
 pub fn print_full_help_if_needed(m: &clap::ArgMatches, manual: Manual) {
-    if m.is_present("full-help") {
+    if m.contains_id("full-help") {
         display_full_help(manual)
-    } else if m.is_present("full-help-roff") {
+    } else if m.contains_id("full-help-roff") {
         println!("{}", manual.render());
         process::exit(0);
     }
@@ -53,21 +53,21 @@ pub fn parse_list_of_genome_fasta_files(
     m: &clap::ArgMatches,
     fail_on_no_genomes: bool,
 ) -> std::result::Result<Vec<String>, String> {
-    match m.is_present("genome-fasta-files") {
+    match m.contains_id("genome-fasta-files") {
         true => {
             return Ok(m
-                .values_of("genome-fasta-files")
+                .get_many::<String>("genome-fasta-files")
                 .unwrap()
                 .map(|s| s.to_string())
                 .collect())
         }
         false => {
-            if m.is_present("genome-fasta-directory") {
-                let dir = m.value_of("genome-fasta-directory").unwrap();
+            if m.contains_id("genome-fasta-directory") {
+                let dir = m.get_one::<String>("genome-fasta-directory").unwrap();
                 let paths = std::fs::read_dir(dir)
                     .expect(&format!("Failed to read genome-fasta-directory '{}'", dir));
                 let mut genome_fasta_files: Vec<String> = vec![];
-                let extension = m.value_of("genome-fasta-extension").unwrap();
+                let extension = m.get_one::<String>("genome-fasta-extension").unwrap();
                 // Remove leading dot if present
                 let extension2 = match extension.starts_with(".") {
                     true => {
@@ -109,8 +109,8 @@ pub fn parse_list_of_genome_fasta_files(
                     };
                 }
                 return Ok(genome_fasta_files);
-            } else if m.is_present("genome-fasta-list") {
-                let file_path = m.value_of("genome-fasta-list").unwrap();
+            } else if m.contains_id("genome-fasta-list") {
+                let file_path = m.get_one::<String>("genome-fasta-list").unwrap();
                 let file = File::open(file_path).expect(&format!(
                     "Failed to open genome fasta list file {}",
                     file_path
@@ -139,29 +139,26 @@ pub fn parse_list_of_genome_fasta_files(
 /// Add --genome-fasta-files and --genome-fasta-directory etc. to a clap App /
 /// subcommand. These arguments can later be parsed with
 /// parse_list_of_genome_fasta_files().
-pub fn add_genome_specification_arguments<'a>(subcommand: clap::Command<'a>) -> clap::Command<'a> {
+pub fn add_genome_specification_arguments<'a>(subcommand: clap::Command) -> clap::Command {
     subcommand
         .arg(
             Arg::new("genome-fasta-files")
                 .short('f')
                 .long("genome-fasta-files")
                 .help("List of fasta files for processing")
-                .multiple_values(true)
                 .conflicts_with_all(&["genome-fasta-directory", "genome-fasta-list"])
-                .takes_value(true),
+                .action(clap::ArgAction::Append)
         )
         .arg(
             Arg::new("genome-fasta-list")
                 .long("genome-fasta-list")
                 .help("List of fasta file paths, one per line, for processing")
                 .conflicts_with("genome-fasta-directory")
-                .takes_value(true),
         )
         .arg(
             Arg::new("genome-fasta-directory")
                 .long("genome-fasta-directory")
                 .help("Directory containing fasta files for processing")
-                .takes_value(true),
         )
         .arg(
             Arg::new("genome-fasta-extension")
@@ -173,7 +170,6 @@ pub fn add_genome_specification_arguments<'a>(subcommand: clap::Command<'a>) -> 
                 // not sure about here) - clap bug?
                 //.requires("genome-fasta-directory")
                 .default_value("fna")
-                .takes_value(true),
         )
 }
 
@@ -212,7 +208,7 @@ pub fn add_genome_specification_to_section(section: Section) -> Section {
         )
 }
 
-pub fn add_clap_verbosity_flags(cmd: clap::Command<'_>) -> clap::Command<'_> {
+pub fn add_clap_verbosity_flags(cmd: clap::Command) -> clap::Command {
     cmd
     .args(&[
         arg!(-v --verbose "Print extra debug logging information"),
