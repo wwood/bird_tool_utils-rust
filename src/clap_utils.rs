@@ -15,11 +15,11 @@ use tempfile;
 pub fn set_log_level(matches: &clap::ArgMatches, is_last: bool, program_name: &str, version: &str) {
     let mut log_level = LevelFilter::Info;
     let mut specified = false;
-    if matches.contains_id("verbose") {
+    if matches.get_flag("verbose") {
         specified = true;
         log_level = LevelFilter::Debug;
     }
-    if matches.contains_id("quiet") {
+    if matches.get_flag("quiet") {
         specified = true;
         log_level = LevelFilter::Error;
     }
@@ -30,7 +30,7 @@ pub fn set_log_level(matches: &clap::ArgMatches, is_last: bool, program_name: &s
             builder.parse_filters(&env::var("RUST_LOG").unwrap());
         }
         if builder.try_init().is_err() {
-            panic!("Failed to set log level - has it been specified multiple times?")
+            panic!("Failed to set log level - has it been specified multiple times? Error was {}", builder.try_init().unwrap_err())
         }
     }
     if is_last {
