@@ -212,7 +212,7 @@ pub fn add_clap_verbosity_flags(cmd: clap::Command) -> clap::Command {
     cmd
     .args(&[
         arg!(-v --verbose "Print extra debug logging information"),
-        arg!(-q --quiet "Unless there is an error, do not print logging information"),
+        arg!(--quiet "Unless there is an error, do not print logging information"),
     ])
 }
 
