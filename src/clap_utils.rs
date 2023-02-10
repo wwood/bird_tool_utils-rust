@@ -39,9 +39,9 @@ pub fn set_log_level(matches: &clap::ArgMatches, is_last: bool, program_name: &s
 }
 
 pub fn print_full_help_if_needed(m: &clap::ArgMatches, manual: Manual) {
-    if m.contains_id("full-help") {
+    if m.get_flag("full-help") {
         display_full_help(manual)
-    } else if m.contains_id("full-help-roff") {
+    } else if m.get_flag("full-help-roff") {
         println!("{}", manual.render());
         process::exit(0);
     }
@@ -148,6 +148,7 @@ pub fn add_genome_specification_arguments<'a>(subcommand: clap::Command) -> clap
                 .help("List of fasta files for processing")
                 .conflicts_with_all(&["genome-fasta-directory", "genome-fasta-list"])
                 .action(clap::ArgAction::Append)
+                .num_args(0..)
         )
         .arg(
             Arg::new("genome-fasta-list")
