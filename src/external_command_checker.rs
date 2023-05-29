@@ -84,7 +84,16 @@ pub fn default_version_check(
         .expect("Failed to grab stdout from failed command version finding process")
         .read_to_string(&mut version)
         .expect("Failed to read stdout into string");
-    version = version.trim().to_string();
+    // Split the version string on newlines, and take the first line, and take the last word
+    let first_line = version.lines().next().expect(&format!(
+        "Unable to parse version for {} (error 1)",
+        &executable_name
+    ));
+    let last = first_line.split_whitespace().last().expect(&format!(
+        "Unable to parse version for {} (error 2)",
+        &executable_name
+    ));
+    version = last.to_string();
     debug!(
         "Running {}, found version STDOUT: {:?}",
         executable_name, version
