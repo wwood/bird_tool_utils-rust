@@ -1,6 +1,30 @@
 use std;
 use std::io::Read;
 use version_compare::Version;
+use which::which;
+
+/// Check whether a command is available at all using the which crate
+pub fn check_for_external_command_presence_with_which(executable_name: &str) -> Result<(),String> {
+    debug!("Checking for {} ..", executable_name);
+    match which(executable_name) {
+        Ok(_) => {
+            debug!("Found {}", executable_name);
+            Ok(())
+        }
+        Err(_) => {
+            error!(
+                "Could not find an available {} executable.",
+                executable_name
+            );
+            let error_string = format!(
+                "Cannot continue without {}. Please install it and ensure it is in your PATH",
+                executable_name
+            );
+            error!("{}", error_string);
+            Err(error_string)
+        }
+    }
+}
 
 /// Check whether a command is available at all
 pub fn check_for_external_command_presence(executable_name: &str, testing_cmd: &str) -> Result<(),String> {
