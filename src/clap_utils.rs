@@ -242,7 +242,7 @@ pub fn list_roff(strings: &[&str]) -> String {
     let mut s: String = "\n".to_string(); //start with a new line so the first .IP starts at the first char of the row
     for e in strings {
         s.push_str(".IP \\[bu] 2\n");
-        s.push_str(e.clone());
+        s.push_str(e);
         s.push_str("\n");
     }
     s.push_str(".PP\n");
@@ -272,7 +272,7 @@ pub fn table_roff(strings: &[&[&str]]) -> String {
                 s.push_str("@");
             }
             s.push_str("T{\n");
-            s.push_str(cell.clone());
+            s.push_str(cell);
             s.push_str("\nT}");
         }
         s.push_str("\n");
