@@ -77,26 +77,16 @@ pub fn parse_list_of_genome_fasta_files(
                 };
                 for path in paths {
                     let file = path.unwrap().path();
-                    match file.extension() {
-                        Some(ext) => {
-                            if ext == extension2 {
-                                let s = String::from(file.to_string_lossy());
-                                genome_fasta_files.push(s);
-                            } else {
-                                info!(
-                                    "Not using directory entry '{}' as a genome FASTA file, as \
-                                     it does not end with the extension '.{}'",
-                                    file.to_str().expect("UTF8 error in filename"),
-                                    extension2
-                                );
-                            }
-                        }
-                        None => {
-                            info!(
-                                "Not using directory entry '{}' as a genome FASTA file",
-                                file.to_str().expect("UTF8 error in filename")
-                            );
-                        }
+                    let file_basename_str = file.file_name().expect("unable to extract file basename").to_string_lossy();
+                    if file_basename_str.ends_with(extension2) {
+                        genome_fasta_files.push(file.to_string_lossy().to_string());
+                    } else {
+                        info!(
+                            "Not using directory entry '{}' as a genome FASTA file, as \
+                             it does not end with the extension '.{}'",
+                            file.to_str().expect("UTF8 error in filename"),
+                            extension2
+                        );
                     }
                 }
                 if genome_fasta_files.len() == 0 {
