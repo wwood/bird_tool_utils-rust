@@ -185,8 +185,6 @@ def main() -> None:
 
     update_changelog(version, Path("CHANGELOG.md"))
 
-    cargo_toml_changed = update_cargo_toml(version, Path("Cargo.toml"))
-
     update_cargo_toml(version, Path("Cargo.toml"))
 
     if not args.no_lock_update:
@@ -210,7 +208,10 @@ def main() -> None:
     run(["git", "commit", "-m", f"Release {tag}"])
     run(["git", "tag", tag])
 
-    run(["cargo", "publish"])
+    publish_cmd = ["cargo", "publish"]
+    if args.allow_dirty:
+        publish_cmd.append("--allow-dirty")
+    run(publish_cmd)
     run(["git", "push", "origin", "HEAD", "--tags"])
 
     print()
