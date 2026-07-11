@@ -1,0 +1,15 @@
+# cargo-release config (https://github.com/crate-ci/cargo-release).
+# Used only if you drive releases with `cargo release` instead of the bundled
+# release.py. Both do the same job: bump the version, roll CHANGELOG's
+# "## Unreleased" into a versioned section, commit, and tag v{{version}}.
+tag-name = "v{{version}}"
+tag-message = "Release v{{version}}"
+pre-release-commit-message = "Release v{{version}}"
+
+[[pre-release-replacements]]
+file = "CHANGELOG.md"
+search = "## Unreleased"
+replace = """## Unreleased
+
+## Version {{version}}"""
+exactly = 1

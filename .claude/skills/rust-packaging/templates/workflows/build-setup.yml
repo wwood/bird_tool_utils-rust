@@ -1,0 +1,25 @@
+# Custom steps cargo-dist injects before each release build job. Only needed
+# when the crate links native/conda libraries that a bare `cargo build` in CI
+# cannot find (e.g. sracat-rs static-links ncbi-vdb from a pixi env).
+#
+# Wire it up in Cargo.toml:
+#   [workspace.metadata.dist]
+#   github-build-setup = "build-setup/build-setup.yml"
+# then place this file at .github/workflows/build-setup/build-setup.yml and
+# re-run `dist generate` (or `dist init`).
+#
+# cargo-dist runs `cargo build` directly (not inside `pixi run`), so these steps
+# provision the deps via pixi and export the env vars build.rs reads. Adapt the
+# env-var names to whatever your build.rs looks for.
+- name: Set up pixi
+  uses: prefix-dev/setup-pixi@v0.8.1
+  with:
+    manifest-path: pixi.toml
+- name: Install native deps + toolchain into the pixi env
+  run: pixi install
+- name: Point the build at the pixi env (adjust to your build.rs)
+  shell: bash
+  run: |
+    echo "CONDA_PREFIX=$PWD/.pixi/envs/default" >> "$GITHUB_ENV"
+    # e.g. force static linking so the released binary is self-contained:
+    # echo "MYCRATE_LINK=static" >> "$GITHUB_ENV"

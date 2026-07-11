@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# cargo fmt pre-commit hook.
+#
+# Install (from repo root):
+#   ln -sf ../../scripts/pre-commit .git/hooks/pre-commit
+# (copy this file to scripts/pre-commit first, or point the symlink at wherever
+# you keep it). git hooks are per-clone and are NOT committed, so document the
+# install line in the README/CONTRIBUTING and back it up with the CI fmt job.
+#
+# Fails the commit if any tracked Rust code is not rustfmt-clean. Run
+# `cargo fmt --all` to fix, then re-stage.
+set -euo pipefail
+
+if ! cargo fmt --all -- --check; then
+    echo >&2
+    echo "error: rustfmt found unformatted code." >&2
+    echo "       run 'cargo fmt --all', then 'git add' and commit again." >&2
+    exit 1
+fi
