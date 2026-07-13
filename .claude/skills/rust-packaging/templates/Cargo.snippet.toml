@@ -1,0 +1,36 @@
+# Snippets to merge into a project's Cargo.toml.
+# Keep [package] as cargo new generated it, then add the metadata below.
+
+[package]
+# name / version / edition come from `cargo new`. Fill these in:
+description = "One-line description of the crate"
+license = "MIT"                 # or "GPL-3.0", matching the LICENSE file
+repository = "https://github.com/wwood/CRATE"
+# homepage / documentation / readme are worth setting for library crates too.
+
+# --- Binary crates: declare the bin explicitly ---------------------------
+# [[bin]]
+# name = "CRATE"
+# path = "src/main.rs"
+
+# --- Release profile: optimise the shipped binary ------------------------
+[profile.release]
+lto = true
+codegen-units = 1
+
+# --- cargo-dist: prebuilt binaries + installers (BINARY crates only) -----
+# Generated/managed by `dist init`; shown here so you know what to expect.
+# Libraries skip everything below and release with `cargo publish` only.
+[profile.dist]
+inherits = "release"
+lto = "thin"
+
+[workspace.metadata.dist]
+cargo-dist-version = "0.31.0"        # pin; matches the installed `dist`
+ci = "github"
+installers = ["shell"]
+targets = ["x86_64-unknown-linux-gnu"]  # add platforms as runners/deps allow
+install-updater = false
+install-path = "CARGO_HOME"
+# Only for crates with native deps that need pre-build provisioning:
+# github-build-setup = "build-setup/build-setup.yml"

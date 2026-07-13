@@ -1,0 +1,20 @@
+# Alternative to the plain scripts/pre-commit hook, using the pre-commit
+# framework (https://pre-commit.com). Install once with `pre-commit install`;
+# it then runs cargo fmt (and clippy) before every commit. Prefer this if the
+# project already uses pre-commit for other languages; otherwise the plain
+# scripts/pre-commit hook has zero extra dependencies.
+repos:
+  - repo: local
+    hooks:
+      - id: cargo-fmt
+        name: cargo fmt
+        entry: cargo fmt --all --
+        language: system
+        types: [rust]
+        pass_filenames: false
+      - id: cargo-clippy
+        name: cargo clippy
+        entry: cargo clippy --all-targets --all-features -- -D warnings
+        language: system
+        types: [rust]
+        pass_filenames: false
